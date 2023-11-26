@@ -10,6 +10,27 @@ app.use(cors());
 app.use(express.json());
 
 
+let maxLive = 0;
+
+function getActiveSocketsCount(){
+    let activeSocketsCount = io.sockets.sockets.size - 1;
+    return activeSocketsCount;
+}
+
+function LogLiveCount(count){
+    console.log("Live:",count);
+
+    if(count > maxLive){
+        console.log("Max Live:",count);
+        maxLive = count;
+    }
+}
+
+function LogMessage(message){
+    console.log("Message:",message);
+}
+
+
 app.get('/',(req,res)=>{
     res.write("Hello");
     res.end();
@@ -17,8 +38,10 @@ app.get('/',(req,res)=>{
 
 app.post('/message',(req,res)=>{
     let newMessage = req.body.message;
-    console.log(newMessage);
-    io.emit('updateChat',{newMessage:newMessage});
+    LogMessage(newMessage);
+
+    let count = getActiveSocketsCount()
+    io.emit('updateChat',{newMessage:newMessage,liveCount:count});
 
     res.send({status:"success"}).status(200).end();
 })
@@ -29,21 +52,32 @@ const server = app.listen(PORT,()=>{
 
 const io = new Server(server,{
     cors:{
-        origin:['https://ghostchat.ccbp.tech']
+        origin:['https://ghostchat.ccbp.tech','http://127.0.0.1:5500']
     }
 });
 
 io.on('connection',(socket)=>{
-    console.log("new user enterd into the chat");
 
+    //update live count
+    let count = getActiveSocketsCount();
+    io.emit('countChange',{liveCount:count});
+
+    LogLiveCount(count);
+
+    //sendToFreinds Event
     socket.on('sendToFriends',(data)=>{
         io.emit('updateChat',{newMessage:data.message});
     });
+
+
+    socket.on('disconnect', () => {
+        let count = getActiveSocketsCount();
+        io.emit('countChange',{liveCount: count});
+        LogLiveCount(count);
+    });
 });
 
-io.on('disconnect',(socket)=>{
-    console.log("user exited from chat");
-});
+
 
 
 
