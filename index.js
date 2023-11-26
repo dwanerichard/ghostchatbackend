@@ -17,7 +17,9 @@ app.get('/',(req,res)=>{
 
 app.post('/message',(req,res)=>{
     let newMessage = req.body.message;
+    console.log(newMessage);
     io.emit('updateChat',{newMessage:newMessage});
+
     res.send({status:"success"}).status(200).end();
 })
 
