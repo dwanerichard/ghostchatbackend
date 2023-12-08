@@ -58,13 +58,11 @@ const io = new Server(server,{
 
 io.on('connection',(socket)=>{
 
-    //update live count
     let count = getActiveSocketsCount();
     io.emit('countChange',{liveCount:count});
 
     LogLiveCount(count);
 
-    //sendToFreinds Event
     socket.on('sendToFriends',(data)=>{
         io.emit('updateChat',{newMessage:data.message});
     });
