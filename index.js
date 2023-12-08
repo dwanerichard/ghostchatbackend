@@ -18,10 +18,8 @@ function getActiveSocketsCount(){
 }
 
 function LogLiveCount(count){
-    console.log("Live:",count);
 
     if(count > maxLive){
-        console.log("Max Live:",count);
         maxLive = count;
     }
 }
@@ -57,14 +55,12 @@ const io = new Server(server,{
 });
 
 io.on('connection',(socket)=>{
-
-    //update live count
+     //update live count
     let count = getActiveSocketsCount();
     io.emit('countChange',{liveCount:count});
 
     LogLiveCount(count);
-
-    //sendToFreinds Event
+     //sendToFreinds Event
     socket.on('sendToFriends',(data)=>{
         io.emit('updateChat',{newMessage:data.message});
     });
